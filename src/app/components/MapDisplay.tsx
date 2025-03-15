@@ -32,8 +32,9 @@ const defaultMapOptions = {
 export function MapDisplay() {
 
   const mapRef = useRef<google.maps.Map | null>(null); 
+  const markerRefs = useRef<{[key: number]: google.maps.Marker}>({});
+  const [activeMarkerIndex, setActiveMarkerIndex] = useState<number | null>(null);
   const [selectedElement, setSelectedElement] = useState<{name: string; info: string, lat: number; lng: number;} | null>(null);
-  const [activeMarker, setActiveMarker] = useState<google.maps.LatLng | null>(null);
 
   const onMapLoad = useCallback(async (map: google.maps.Map) => {
     mapRef.current = map;
@@ -43,17 +44,12 @@ export function MapDisplay() {
     }
   }, [])
 
-  // Calculate adjusted position for the InfoWindow
-  const markerPosition = useMemo(() => {
-    if (!activeMarker) return undefined;
-    
-    // Create a new position with slightly higher latitude (moves it up)
-    const offset = 0.00012; // Small latitude offset
-    return {
-      lat: activeMarker.lat() + offset,
-      lng: activeMarker.lng()
-    };
-  }, [activeMarker]);
+  // Get the active marker reference based on the active index
+  const activeMarker = useMemo(() => {
+    if (activeMarkerIndex === null) return null;
+    return markerRefs.current[activeMarkerIndex] || null;
+  }, [activeMarkerIndex]);
+
 
   const pinStops = [
     {
@@ -82,18 +78,22 @@ export function MapDisplay() {
                 lat: element.lat,
                 lng: element.lng
               }}
+              onLoad={(marker) => {
+                markerRefs.current[index] = marker;
+              }}
               onClick={(e) => {
                 setSelectedElement(element);
-                setActiveMarker(e.latLng);
+                setActiveMarkerIndex(index);
               }}
             />
           );
         })}
-        {selectedElement ? (
+        {selectedElement && activeMarker ? (
           <InfoWindow
-            position={markerPosition}
+            anchor={activeMarker}
             onCloseClick={() => {
               setSelectedElement(null);
+              setActiveMarkerIndex(null);
             }}
           >
             <div>
