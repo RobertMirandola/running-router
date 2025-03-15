@@ -1,54 +1,23 @@
 'use client';
 
 //Map component Component from library
-import { GoogleMap, InfoWindow, Marker } from "@react-google-maps/api";
+import {
+  APIProvider,
+  Map,
+  AdvancedMarker,
+  InfoWindow,
+  useAdvancedMarkerRef
+} from "@vis.gl/react-google-maps";
 
-import { useCallback, useRef, useState, useMemo } from "react";
+import { useState } from "react";
 
-//Map's styling
-const defaultMapContainerStyle = {
-    width: '100%',
-    height: '100vh',
-    borderRadius: '15px 0px 0px 15px',
-};
-
-const defaultMapCenter = {
-    lat: 43.805152,
-    lng: -79.628020
-}
-
-//Default zoom level, can be adjusted
-const defaultMapZoom = 18
-
-//Map options
-const defaultMapOptions = {
-    zoomControl: true,
-    tilt: 0,
-    gestureHandling: 'auto',
-    draggableCursor: 'crosshair',
-    mapId: 'my_map'
-};
 
 export function MapDisplay() {
+  const position = { lat: 43.805153, lng: -79.628021 };
 
-  const mapRef = useRef<google.maps.Map | null>(null); 
-  const markerRefs = useRef<{[key: number]: google.maps.Marker}>({});
-  const [activeMarkerIndex, setActiveMarkerIndex] = useState<number | null>(null);
-  const [selectedElement, setSelectedElement] = useState<{name: string; info: string, lat: number; lng: number;} | null>(null);
-
-  const onMapLoad = useCallback(async (map: google.maps.Map) => {
-    mapRef.current = map;
-
-    if (mapRef.current) {
-      const center = mapRef.current.getCenter();
-    }
-  }, [])
-
-  // Get the active marker reference based on the active index
-  const activeMarker = useMemo(() => {
-    if (activeMarkerIndex === null) return null;
-    return markerRefs.current[activeMarkerIndex] || null;
-  }, [activeMarkerIndex]);
+  const [markerRef, marker] = useAdvancedMarkerRef();
+  const [selectedMarker, setSelectedMarker] = useState<{name: string; info: string, lat: number; lng: number;} | null>(null);
+  const [open, setOpen] = useState(false);
 
 
   const pinStops = [
@@ -61,48 +30,39 @@ export function MapDisplay() {
   ]
   
   return (
-    <div className='w-full'>
-     <GoogleMap
-        mapContainerStyle={defaultMapContainerStyle}
-        center={defaultMapCenter}
-        zoom={defaultMapZoom}
-        options={defaultMapOptions}
-        onLoad={onMapLoad}
-      >
+    <APIProvider apiKey={process.env.NEXT_PUBLIC_MAPS_API_KEY as string}>
+      <div className="h-screen w-screen">
+        <Map defaultZoom={18} defaultCenter={position} mapId="my_map" draggableCursor='crosshair'>
+
         {pinStops.map((element, index) => {
           return (
-            <Marker
+            <AdvancedMarker
+              ref={markerRef}
               key={index}
               title={element.name}
               position={{
                 lat: element.lat,
                 lng: element.lng
               }}
-              onLoad={(marker) => {
-                markerRefs.current[index] = marker;
-              }}
-              onClick={(e) => {
-                setSelectedElement(element);
-                setActiveMarkerIndex(index);
+              onClick={() => {
+                setOpen(true)
+                setSelectedMarker(element);
               }}
             />
           );
         })}
-        {selectedElement && activeMarker ? (
-          <InfoWindow
-            anchor={activeMarker}
-            onCloseClick={() => {
-              setSelectedElement(null);
-              setActiveMarkerIndex(null);
-            }}
-          >
+        {open && selectedMarker && (
+          <InfoWindow anchor={marker} onCloseClick={() => setOpen(false)}>
             <div>
-              <h1>{selectedElement.name}</h1>
-              <p>{selectedElement.info}</p>
+              <h1>{selectedMarker.name}</h1>
+              <p>{selectedMarker.info}</p>
             </div>
           </InfoWindow>
-        ) : null}
-      </GoogleMap>
-    </div>
+        )}
+
+       
+        </Map>
+      </div>
+    </APIProvider>
   );
 }
