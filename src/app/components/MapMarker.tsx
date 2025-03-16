@@ -5,19 +5,8 @@ import {
   InfoWindow,
   useAdvancedMarkerRef
 } from "@vis.gl/react-google-maps";
-
 import { useState } from "react";
-
-interface MarkerData {
-  name: string;
-  info: string;
-  lat: number;
-  lng: number;
-}
-
-interface MapMarkerProps {
-  data: MarkerData;
-}
+import { MapMarkerProps } from "../types/map";
 
 export function MapMarker({ data }: MapMarkerProps) {
   // Create a ref for the marker
@@ -42,7 +31,6 @@ export function MapMarker({ data }: MapMarkerProps) {
         >
           <div>
             <h1>{data.name}</h1>
-            <p>{data.info}</p>
           </div>
         </InfoWindow>
       )}
