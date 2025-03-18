@@ -39,6 +39,17 @@ export function MapDisplay() {
     setMarkers(prevMarkers => [...prevMarkers, newMarker]);
   }, [numWayPoints]);
   
+  // Handle removing the last marker (used by Directions component)
+  const handleUndoLastMarker = useCallback(() => {
+    if (markers.length === 0) return;
+    
+    // Remove the last marker
+    setMarkers(prevMarkers => prevMarkers.slice(0, -1));
+    
+    // Decrease waypoint counter
+    setNumWayPoints(prev => Math.max(0, prev - 1));
+  }, [markers.length]);
+  
   return (
     <div className="relative h-screen w-full">
       {/* Custom button positioned absolutely at the top center - only shown after map loads */}
@@ -71,7 +82,7 @@ export function MapDisplay() {
         {markers.map((element, index) => (
           <MapMarker key={index} data={element} />
         ))}
-        <Directions markers={markers}/>
+        <Directions markers={markers} onUndo={handleUndoLastMarker} />
       </Map>
     </div>
   );
