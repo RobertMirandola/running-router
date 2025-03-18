@@ -54,7 +54,7 @@ export function MapDisplay() {
       )}
 
       <Map 
-        defaultZoom={18} 
+        defaultZoom={16} 
         defaultCenter={DEFAULT_MAP_CENTER} 
         mapId="my_map" 
         draggableCursor='crosshair'
