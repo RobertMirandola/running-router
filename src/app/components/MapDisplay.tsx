@@ -58,6 +58,8 @@ export function MapDisplay() {
         defaultCenter={DEFAULT_MAP_CENTER} 
         mapId="my_map" 
         draggableCursor='crosshair'
+        mapTypeControl={false}
+        fullscreenControl={false}
         onClick={handleMapClick}
         onTilesLoaded={() => {
           // Use this event to detect when the map is ready
