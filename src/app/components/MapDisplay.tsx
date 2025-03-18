@@ -3,14 +3,16 @@
 //Map component Component from library
 import {
   Map,
+  useMapsLibrary,
 } from "@vis.gl/react-google-maps";
 
 import { MapMarker } from "./MapMarker";
 import { MarkerData } from "../types/map";
+import { Directions } from "./Directions";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback } from "react";
 
-const DEFAULT_CENTER = { lat: 43.805153, lng: -79.628021 };
+const DEFAULT_MAP_CENTER = { lat: 43.805153, lng: -79.628021 };
 
 export function MapDisplay() {
   const [markers, setMarkers] = useState<MarkerData[]>([]);
@@ -26,7 +28,7 @@ export function MapDisplay() {
 
   const handleMapClick = useCallback((event: any) => {
     const nextWaypoint = numWayPoints + 1;
-    setNumWayPoints(numWayPoints + 1);
+    setNumWayPoints(nextWaypoint);
     
     const newMarker: MarkerData = {
       name: `Waypoint ${nextWaypoint}`,
@@ -38,13 +40,13 @@ export function MapDisplay() {
   }, [numWayPoints]);
   
   return (
-    <div className="relative h-screen w-screen">
+    <div className="relative h-screen w-full">
       {/* Custom button positioned absolutely at the top center - only shown after map loads */}
       {mapLoaded && (
-        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-10">
+        <div className='absolute top-4 left-1/2 transform -translate-x-1/2 z-10 flex space-x-4'>
           <button 
             onClick={handleButtonClick}
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded shadow-lg cursor-pointer"
+            className='bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded shadow-lg cursor-pointer'
           >
             Clear Waypoints
           </button>
@@ -53,7 +55,7 @@ export function MapDisplay() {
 
       <Map 
         defaultZoom={18} 
-        defaultCenter={DEFAULT_CENTER} 
+        defaultCenter={DEFAULT_MAP_CENTER} 
         mapId="my_map" 
         draggableCursor='crosshair'
         onClick={handleMapClick}
@@ -67,6 +69,7 @@ export function MapDisplay() {
         {markers.map((element, index) => (
           <MapMarker key={index} data={element} />
         ))}
+        <Directions markers={markers}/>
       </Map>
     </div>
   );

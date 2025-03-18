@@ -21,10 +21,10 @@ export function MapMarker({ data }: MapMarkerProps) {
         ref={markerRef}
         position={{ lat: data.lat, lng: data.lng }}
         title={data.name}
-        onClick={() => setIsOpen(true)}
+        // onClick={() => setIsOpen(true)}
       />
       
-      {isOpen && marker && (
+      {/* {isOpen && marker && (
         <InfoWindow 
           anchor={marker} 
           onCloseClick={() => setIsOpen(false)}
@@ -33,7 +33,7 @@ export function MapMarker({ data }: MapMarkerProps) {
             <h1>{data.name}</h1>
           </div>
         </InfoWindow>
-      )}
+      )} */}
     </>
   );
 } 
