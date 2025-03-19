@@ -6,7 +6,8 @@ import { MarkerData } from "../types/map";
 
 interface DirectionsProps {
   markers: MarkerData[];
-  onUndo?: () => void; // Add optional callback for parent component
+  onUndo?: () => void;
+  onClearWaypoints?: () => void;
 }
 
 interface DirectionRenderer {
@@ -19,6 +20,7 @@ interface DirectionRenderer {
 export function Directions({ 
   markers,
   onUndo,
+  onClearWaypoints
 }: DirectionsProps) {
   const map = useMap();
   const routesLibrary = useMapsLibrary('routes');
@@ -44,22 +46,39 @@ export function Directions({
 
   const computeTotalDistance = () => {
     let totalDistance = 0;
-    for (let i = 0; i < renderers.length; i++) {
-      const directionResult = renderers[i].directionResult;
+    let routePath: google.maps.LatLng[] = [];
 
-      if (!directionResult) continue;
-      const myroute = directionResult.routes[0];
-      if (!myroute) {
-        continue;
+    if (renderers.length > 0) {
+      for (let i = 0; i < renderers.length; i++) {
+        const directionResult = renderers[i].directionResult;
+        if (!directionResult) continue;
+        routePath = [...routePath, ...directionResult.routes[0].overview_path];
+        
+  
+        const myroute = directionResult.routes[0];
+        if (!myroute) {
+          continue;
+        }
+      
+        for (let i = 0; i < myroute.legs.length; i++) {
+          totalDistance += myroute.legs[i]!.distance!.value;
+        }
       }
-    
-      for (let i = 0; i < myroute.legs.length; i++) {
-        totalDistance += myroute.legs[i]!.distance!.value;
-      }
+  
+      // const elevator = new google.maps.ElevationService;
+      // elevator.getElevationAlongPath({
+      //   path: routePath,
+      //   samples: 256,
+      // }).then((response) => {
+      //   console.log(response)
+      //   debugger
+      // })
+
+      // total = total / 1000;
+      console.log('total route distance = ', totalDistance)
+      // console.log('total paths = ', routePath)
     }
 
-    // total = total / 1000;
-    console.log('total route distance = ', totalDistance)
   }
 
   useEffect(() => {
@@ -152,7 +171,7 @@ export function Directions({
       })
   }, [directionsService, markers]);
 
-  const handleUndo = () => {
+  const handleUndoDirection = () => {
     if (renderers.length === 0) return;
     
     // Remove last renderer visually
@@ -174,18 +193,31 @@ export function Directions({
     }
   }
 
+  const handleClearWayPoints = () => {
+    clearDirections();
+
+    if (onClearWaypoints) {
+      onClearWaypoints();
+    }
+  }
+
   return (
     <>
-      {markers && markers.length >= 2 && (
-        <div className="absolute bottom-4 left-4 flex flex-col items-end gap-2">
-          <button 
-            onClick={handleUndo}
-            className="px-4 py-2 bg-blue-500 text-white rounded-md shadow-md hover:bg-blue-600 transition-colors"
-          >
-            Undo Last Marker
-          </button>
-        </div>
-      )}
+      <div className="absolute top-4 right-4 flex flex-row gap-4">
+        <button 
+          onClick={handleUndoDirection}
+          className="px-4 py-2 bg-blue-500 hover:bg-blue-700 text-white font-bold rounded shadow-lg cursor-pointer transition-colors"
+          aria-label="Undo"
+        >
+          Undo Last Marker
+        </button>
+        <button 
+          onClick={handleClearWayPoints}
+          className="px-4 py-2 bg-blue-500 hover:bg-blue-700 text-white font-bold rounded shadow-lg cursor-pointer transition-colors"
+        >
+          Clear Waypoints
+        </button>
+      </div>
     </>
   );
 }

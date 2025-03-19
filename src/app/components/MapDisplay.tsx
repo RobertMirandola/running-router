@@ -19,7 +19,7 @@ export function MapDisplay() {
   const [numWayPoints, setNumWayPoints] = useState(0);
   const [mapLoaded, setMapLoaded] = useState(false);
 
-  const handleButtonClick = () => {
+  const handleClearMarkers = () => {
     // Clear all markers
     setMarkers([]);
     // Reset waypoint counter
@@ -52,25 +52,12 @@ export function MapDisplay() {
   
   return (
     <div className="relative h-screen w-full">
-      {/* Custom button positioned absolutely at the top center - only shown after map loads */}
-      {mapLoaded && (
-        <div className='absolute top-4 left-1/2 transform -translate-x-1/2 z-10 flex space-x-4'>
-          <button 
-            onClick={handleButtonClick}
-            className='bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded shadow-lg cursor-pointer'
-          >
-            Clear Waypoints
-          </button>
-        </div>
-      )}
-
       <Map 
         defaultZoom={16} 
         defaultCenter={DEFAULT_MAP_CENTER} 
         mapId="my_map" 
         draggableCursor='crosshair'
-        mapTypeControl={false}
-        fullscreenControl={false}
+        disableDefaultUI={true}
         onClick={handleMapClick}
         onTilesLoaded={() => {
           // Use this event to detect when the map is ready
@@ -82,7 +69,11 @@ export function MapDisplay() {
         {markers.map((element, index) => (
           <MapMarker key={index} data={element} />
         ))}
-        <Directions markers={markers} onUndo={handleUndoLastMarker} />
+
+        {mapLoaded && (
+            <Directions markers={markers} onUndo={handleUndoLastMarker} onClearWaypoints={handleClearMarkers} />
+        )}
+
       </Map>
     </div>
   );
