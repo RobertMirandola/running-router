@@ -17,7 +17,7 @@ export function Directions({
   // Use our custom hook to handle all directions logic
   const {
     handleUndoDirection,
-    handleClearWayPoints
+    handleClearWayPoints,
   } = useDirections({
     markers,
     onUndo,

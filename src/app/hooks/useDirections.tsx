@@ -10,6 +10,7 @@ interface DirectionRenderer {
   destinationIndex: number,
   directionRenderer: google.maps.DirectionsRenderer
   directionResult: google.maps.DirectionsResult | null,
+  listener: google.maps.MapsEventListener
 }
 
 // Interface for hook parameters
@@ -21,8 +22,6 @@ interface UseDirectionsProps {
 
 // Interface for hook return values
 interface UseDirectionsReturn {
-  renderers: DirectionRenderer[];
-  clearDirections: () => void;
   handleUndoDirection: () => void;
   handleClearWayPoints: () => void;
 }
@@ -51,7 +50,28 @@ export function useDirections({
   const clearDirections = () => {
     for (let i = 0; i < renderers.length; i++) {
       renderers[i].directionRenderer.set('directions', null);
+      renderers[i].listener.remove();
       setRenderers([]);
+    }
+  }
+
+  const updatedRenderersWithNewDirections = (directionsDisplay: google.maps.DirectionsRenderer) => {
+    const directions = directionsDisplay.getDirections();
+
+    if (directions) {
+      // Update the directionResult in renderers array
+      setRenderers(prevRenderers => {
+        return prevRenderers.map(renderer => {
+          // Check if this is the renderer that was changed
+          if (renderer.directionRenderer === directionsDisplay) {
+            return {
+              ...renderer,
+              directionResult: directions
+            };
+          }
+          return renderer;
+        });
+      });
     }
   }
 
@@ -138,29 +158,10 @@ export function useDirections({
       },
       preserveViewport: true // Don't auto-zoom on route change
     });
-    
 
-    directionsDisplay.addListener("directions_changed", () => {
-      const directions = directionsDisplay.getDirections();
-
-      if (directions) {
-        // Update the directionResult in renderers array
-        setRenderers(prevRenderers => {
-          return prevRenderers.map(renderer => {
-            // Check if this is the renderer that was changed
-            if (renderer.directionRenderer === directionsDisplay) {
-              // Update the directionResult while keeping all other properties
-              return {
-                ...renderer,
-                directionResult: directions
-              };
-            }
-            // Return unchanged renderer
-            return renderer;
-          });
-        });
-      }
-    });
+    // Store the listener function for cleanup
+    const listener = () => updatedRenderersWithNewDirections(directionsDisplay);
+    const mapsEventListener = directionsDisplay.addListener("directions_changed", listener);
     
     // Request the route
     directionsService.route(request)
@@ -173,6 +174,7 @@ export function useDirections({
           destinationIndex: markers.indexOf(destination),
           directionRenderer: directionsDisplay,
           directionResult: directionResult,
+          listener: mapsEventListener
         }
 
         const updatedRenderers = [...renderers, newDirectionRenderer];
@@ -183,20 +185,19 @@ export function useDirections({
   const handleUndoDirection = () => {
     if (renderers.length === 0) return;
     
-    // Remove last renderer visually
     const updatedRenderers = [...renderers];
     const lastRenderer = updatedRenderers[updatedRenderers.length - 1];
     
     if (lastRenderer && lastRenderer.directionRenderer) {
       // Remove direction from map
       lastRenderer.directionRenderer.set('directions', null);
+      // Remove the event listener
+      lastRenderer.listener.remove();
     }
     
-    // Remove last renderer from state
     updatedRenderers.pop();
     setRenderers(updatedRenderers);
     
-    // Notify parent component to remove the last marker
     if (onUndo) {
       onUndo();
     }
@@ -211,8 +212,6 @@ export function useDirections({
   }
 
   return {
-    renderers,
-    clearDirections,
     handleUndoDirection,
     handleClearWayPoints
   };
