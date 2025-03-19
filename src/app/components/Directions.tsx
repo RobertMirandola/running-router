@@ -9,13 +9,6 @@ interface DirectionsProps {
   onClearWaypoints?: () => void;
 }
 
-interface DirectionRenderer {
-  originIndex: number,
-  destinationIndex: number,
-  directionRenderer: google.maps.DirectionsRenderer
-  directionResult: google.maps.DirectionsResult | null,
-}
-
 export function Directions({ 
   markers,
   onUndo,
