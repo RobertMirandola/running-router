@@ -63,16 +63,15 @@ export function useDirections({
       for (let i = 0; i < renderers.length; i++) {
         const directionResult = renderers[i].directionResult;
         if (!directionResult) continue;
-        routePath = [...routePath, ...directionResult.routes[0].overview_path];
         
   
-        const myroute = directionResult.routes[0];
-        if (!myroute) {
-          continue;
-        }
+        const route = directionResult.routes[0];
+        if (!route) continue;
+
+        routePath = [...routePath, ...route.overview_path];
       
-        for (let i = 0; i < myroute.legs.length; i++) {
-          totalDistance += myroute.legs[i]!.distance!.value;
+        for (let i = 0; i < route.legs.length; i++) {
+          totalDistance += route.legs[i]!.distance!.value;
         }
       }
   
