@@ -22,6 +22,9 @@ interface UseDirectionsProps {
 
 // Interface for hook return values
 interface UseDirectionsReturn {
+  totalDistance: number,
+  elevationGain: number,
+  elevationLoss: number,
   handleUndoDirection: () => void;
   handleClearWayPoints: () => void;
 }
@@ -40,6 +43,9 @@ export function useDirections({
     useState<DirectionRenderer[]>([]);
   // Keep track of previous markers length to detect additions vs removals
   const prevMarkersLengthRef = useRef(0);
+  const [totalDistance, setTotalDistance] = useState(0);
+  const [elevationGain, setElevationGain] = useState(0);
+  const [elevationLoss, setElevationLoss] = useState(0)
 
   // Initialize directions service and renderer
   useEffect(() => {
@@ -51,8 +57,8 @@ export function useDirections({
     for (let i = 0; i < renderers.length; i++) {
       renderers[i].directionRenderer.set('directions', null);
       renderers[i].listener.remove();
-      setRenderers([]);
     }
+    setRenderers([]);
   }
 
   const updatedRenderersWithNewDirections = (directionsDisplay: google.maps.DirectionsRenderer) => {
@@ -75,11 +81,16 @@ export function useDirections({
     }
   }
 
-  const computeTotalDistance = () => {
+  const computeRouteMetrics = () => {
     let totalDistance = 0;
     let routePath: google.maps.LatLng[] = [];
 
-    if (renderers.length > 0) {
+    if (renderers.length === 0) {
+      setTotalDistance(0);
+      setElevationGain(0);
+      setElevationLoss(0);
+    }
+    else {
       for (let i = 0; i < renderers.length; i++) {
         const directionResult = renderers[i].directionResult;
         if (!directionResult) continue;
@@ -94,24 +105,33 @@ export function useDirections({
           totalDistance += route.legs[i]!.distance!.value;
         }
       }
-  
-      // const elevator = new google.maps.ElevationService;
-      // elevator.getElevationAlongPath({
-      //   path: routePath,
-      //   samples: 256,
-      // }).then((response) => {
-      //   console.log(response)
-      //   debugger
-      // })
-
-      // total = total / 1000;
-      console.log('total route distance = ', totalDistance)
-      // console.log('total paths = ', routePath)
+      setTotalDistance(totalDistance > 0 ? Number((totalDistance / 1000).toFixed(2)) : 0);
     }
+
+    const elevator = new google.maps.ElevationService;
+    elevator.getElevationAlongPath({
+      path: routePath,
+      samples: 256,
+    }).then((response) => {
+      let totalElevationGain = 0;
+      let totalElevationLoss = 0;
+      
+      for (let i = 1; i < response.results.length; i++) {
+        const elevationDiff = response.results[i].elevation - response.results[i-1].elevation;
+        if (elevationDiff > 0) {
+          totalElevationGain += elevationDiff;
+        } else {
+          totalElevationLoss += Math.abs(elevationDiff);
+        }
+      }
+
+      setElevationGain(totalElevationGain > 0 ? Number(totalElevationGain.toFixed(2)) : 0);
+      setElevationLoss(totalElevationLoss > 0 ? Number(totalElevationLoss.toFixed(2)) : 0);
+    });
   }
 
   useEffect(() => {
-    computeTotalDistance();
+    computeRouteMetrics();
   }, [renderers]);
 
   // Update prevMarkersLengthRef after each markers change
@@ -212,6 +232,9 @@ export function useDirections({
   }
 
   return {
+    totalDistance,
+    elevationGain,
+    elevationLoss,
     handleUndoDirection,
     handleClearWayPoints
   };
