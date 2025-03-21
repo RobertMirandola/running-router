@@ -41,21 +41,6 @@ export function MapDisplay() {
     addMarkerToMap(newMarker, nextWaypoint);
   }
 
-  // const handleAddMarker = useCallback((event: any) => {
-  //   debugger
-  //   const nextWaypoint = numWayPoints + 1;
-  //   setNumWayPoints(nextWaypoint);
-    
-  //   const newMarker: MarkerData = {
-  //     name: `Waypoint ${nextWaypoint}`,
-  //     lat: event.detail.latLng.lat,
-  //     lng: event.detail.latLng.lng,
-  //   };
-
-    
-  //   setMarkers(prevMarkers => [...prevMarkers, newMarker]);
-  // }, [numWayPoints]);
-  
   // Handle removing the last marker (used by Directions component)
   const handleUndoLastMarker = useCallback(() => {
     if (markers.length === 0) return;
