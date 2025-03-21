@@ -36,15 +36,6 @@ const SearchBar = ({
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && value) {
-      e.preventDefault();
-      if (onSelectSuggestion) {
-        onSelectSuggestion(value);
-      }
-    }
-  };
-
   return (
     <div className='w-[450px] relative'>
       <div className="relative flex bg-white border border-gray-200 rounded shadow-sm">
@@ -55,7 +46,6 @@ const SearchBar = ({
           value={value}
           className='w-full py-2 pl-10 pr-3 h-[41px] text-gray-700 placeholder-gray-500 text-sm focus:outline-none focus:ring-1 focus:ring-blue-300 focus:border-blue-300 rounded' 
           onChange={handleInputChange}
-          onKeyDown={handleKeyDown}
         />
       </div>
 
