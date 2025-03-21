@@ -25,18 +25,36 @@ export function MapDisplay() {
     setNumWayPoints(0);
   };
 
-  const handleMapClick = useCallback((event: any) => {
-    const nextWaypoint = numWayPoints + 1;
+  const addMarkerToMap = (marker: MarkerData, nextWaypoint: number) => {
     setNumWayPoints(nextWaypoint);
-    
+    setMarkers(prevMarkers => [...prevMarkers, marker]);
+  }
+
+
+  const handleMapclick = (event: any) => {
+    const nextWaypoint = numWayPoints + 1;
     const newMarker: MarkerData = {
       name: `Waypoint ${nextWaypoint}`,
       lat: event.detail.latLng.lat,
       lng: event.detail.latLng.lng,
-    };
+    }
+    addMarkerToMap(newMarker, nextWaypoint);
+  }
+
+  // const handleAddMarker = useCallback((event: any) => {
+  //   debugger
+  //   const nextWaypoint = numWayPoints + 1;
+  //   setNumWayPoints(nextWaypoint);
     
-    setMarkers(prevMarkers => [...prevMarkers, newMarker]);
-  }, [numWayPoints]);
+  //   const newMarker: MarkerData = {
+  //     name: `Waypoint ${nextWaypoint}`,
+  //     lat: event.detail.latLng.lat,
+  //     lng: event.detail.latLng.lng,
+  //   };
+
+    
+  //   setMarkers(prevMarkers => [...prevMarkers, newMarker]);
+  // }, [numWayPoints]);
   
   // Handle removing the last marker (used by Directions component)
   const handleUndoLastMarker = useCallback(() => {
@@ -57,7 +75,7 @@ export function MapDisplay() {
         mapId="my_map" 
         draggableCursor='crosshair'
         disableDefaultUI={true}
-        onClick={handleMapClick}
+        onClick={handleMapclick}
         onTilesLoaded={() => {
           // Use this event to detect when the map is ready
           if (!mapLoaded) {
@@ -70,7 +88,7 @@ export function MapDisplay() {
         ))}
 
         {mapLoaded && (
-            <Directions markers={markers} onUndo={handleUndoLastMarker} onClearWaypoints={handleClearMarkers} />
+            <Directions markers={markers} onUndo={handleUndoLastMarker} onClearWaypoints={handleClearMarkers} onAddMarker={addMarkerToMap} />
         )}
 
       </Map>

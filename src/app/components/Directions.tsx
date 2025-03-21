@@ -3,19 +3,26 @@
 import { MarkerData } from "../types/map";
 import { useDirections } from "../hooks/useDirections";
 import { Undo, Trash2, Map, TrendingUp, TrendingDown } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import usePlacesAutocomplete, { getGeocode, getLatLng } from "use-places-autocomplete";
+import SearchBar from "@/components/ui/searchBar";
+import { useMap } from "@vis.gl/react-google-maps";
 
 interface DirectionsProps {
   markers: MarkerData[];
   onUndo?: () => void;
   onClearWaypoints?: () => void;
+  onAddMarker?: (marker: MarkerData, nextWaypoint: number) => void;
 }
 
 export function Directions({ 
   markers,
   onUndo,
-  onClearWaypoints
+  onClearWaypoints,
+  onAddMarker
 }: DirectionsProps) {
+  // Get map instance to center on selected location
+  const map = useMap();
+  
   // Use our custom hook to handle all directions logic
   const {
     totalDistance,
@@ -29,27 +36,95 @@ export function Directions({
     onClearWaypoints
   });
 
+  const {
+    ready,
+    value,
+    setValue,
+    suggestions: { status, data },
+    clearSuggestions,
+  } = usePlacesAutocomplete({
+    requestOptions: {
+      // Add your custom options here if needed
+    },
+    debounce: 300,
+  });
+
+  // Handle selecting a place from the search results
+  const handleSelectSuggestion = async (selectedValue: string) => {
+    try {
+      // Set the value to the selected suggestion
+      setValue(selectedValue, false);
+      
+      // Clear suggestions
+      clearSuggestions();
+
+      // Clear all previous directions
+      handleClearWayPoints();
+      
+      // Get latitude and longitude from the selected address
+      const results = await getGeocode({ address: selectedValue });
+      const { lat, lng } = await getLatLng(results[0]);
+      
+      // Create a new marker data object
+      const newMarker: MarkerData = {
+        name: selectedValue,
+        lat,
+        lng
+      };
+      
+      // Add the marker to the map
+      if (onAddMarker) {
+        onAddMarker(newMarker, 0);
+      }
+      
+      // Center the map on the selected location
+      if (map) {
+        map.panTo({ lat, lng });
+      }
+      
+    } catch (error) {
+      console.error("Error finding location: ", error);
+    }
+  };
+
+  // Handle search input change
+  const handleSearchChange = (newValue: string) => {
+    setValue(newValue);
+  };
 
   return (
     <>
-      <div className="absolute top-4 left-0 right-0 flex flex-row gap-4 justify-center">
-        <button 
-          onClick={handleUndoDirection}
-          className="p-2 bg-blue-500 hover:bg-blue-700 text-white font-bold rounded shadow-lg cursor-pointer transition-colors"
-          aria-label="Undo Last Marker"
-          title="Undo Last Marker"
-        >
-          <Undo size={24} />
-        </button>
-        <button 
-          onClick={handleClearWayPoints}
-          className="p-2 bg-blue-500 hover:bg-blue-700 text-white font-bold rounded shadow-lg cursor-pointer transition-colors"
-          aria-label="Clear Waypoints"
-          title="Clear Waypoints"
-        >
-          Clear Waypoints
-          {/* <Trash2 size={24} /> */}
-        </button>
+      <div className="absolute top-4 left-0 right-0 flex justify-center">
+        <div className="w-full flex justify-between">
+          <div className="ml-4 mt-1">
+            <SearchBar 
+              placeholder="Choose a starting point ..."
+              value={value}
+              onChange={handleSearchChange}
+              onSelectSuggestion={handleSelectSuggestion}
+              suggestions={data}
+              showSuggestions={status === "OK"}
+            />
+          </div>
+          <div className="mr-4 mt-1 flex gap-2">
+            <button 
+              onClick={handleUndoDirection}
+              className="h-[42px] p-2 bg-white hover:bg-gray-100 text-gray-500 font-bold rounded-md shadow-lg cursor-pointer transition-colors flex-shrink-0 border-2 border-gray-400"
+              aria-label="Undo Last Marker"
+              title="Undo Last Marker"
+            >
+              <Undo size={24} />
+            </button>
+            <button 
+              onClick={handleClearWayPoints}
+              className="h-[42px] p-2 bg-white hover:bg-gray-100 text-gray-500 font-bold rounded-md shadow-lg cursor-pointer transition-colors flex-shrink-0 border-2 border-gray-400"
+              aria-label="Clear Waypoints"
+              title="Clear Waypoints"
+            >
+              <Trash2 size={24} />
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Distance display bar at the bottom */}

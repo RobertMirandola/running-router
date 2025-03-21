@@ -45,7 +45,7 @@ export function useDirections({
   const prevMarkersLengthRef = useRef(0);
   const [totalDistance, setTotalDistance] = useState(0);
   const [elevationGain, setElevationGain] = useState(0);
-  const [elevationLoss, setElevationLoss] = useState(0)
+  const [elevationLoss, setElevationLoss] = useState(0);
 
   // Initialize directions service and renderer
   useEffect(() => {
