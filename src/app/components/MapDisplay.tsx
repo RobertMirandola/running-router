@@ -3,7 +3,6 @@
 //Map component Component from library
 import {
   Map,
-  useMapsLibrary,
 } from "@vis.gl/react-google-maps";
 
 import { MapMarker } from "./MapMarker";

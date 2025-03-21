@@ -106,28 +106,28 @@ export function useDirections({
         }
       }
       setTotalDistance(totalDistance > 0 ? Number((totalDistance / 1000).toFixed(2)) : 0);
-    }
 
-    const elevator = new google.maps.ElevationService;
-    elevator.getElevationAlongPath({
-      path: routePath,
-      samples: 256,
-    }).then((response) => {
-      let totalElevationGain = 0;
-      let totalElevationLoss = 0;
-      
-      for (let i = 1; i < response.results.length; i++) {
-        const elevationDiff = response.results[i].elevation - response.results[i-1].elevation;
-        if (elevationDiff > 0) {
-          totalElevationGain += elevationDiff;
-        } else {
-          totalElevationLoss += Math.abs(elevationDiff);
+      const elevator = new google.maps.ElevationService;
+      elevator.getElevationAlongPath({
+        path: routePath,
+        samples: 256,
+      }).then((response) => {
+        let totalElevationGain = 0;
+        let totalElevationLoss = 0;
+        
+        for (let i = 1; i < response.results.length; i++) {
+          const elevationDiff = response.results[i].elevation - response.results[i-1].elevation;
+          if (elevationDiff > 0) {
+            totalElevationGain += elevationDiff;
+          } else {
+            totalElevationLoss += Math.abs(elevationDiff);
+          }
         }
-      }
-
-      setElevationGain(totalElevationGain > 0 ? Number(totalElevationGain.toFixed(2)) : 0);
-      setElevationLoss(totalElevationLoss > 0 ? Number(totalElevationLoss.toFixed(2)) : 0);
-    });
+  
+        setElevationGain(totalElevationGain > 0 ? Number(totalElevationGain.toFixed(2)) : 0);
+        setElevationLoss(totalElevationLoss > 0 ? Number(totalElevationLoss.toFixed(2)) : 0);
+      });
+    }
   }
 
   useEffect(() => {
@@ -203,20 +203,19 @@ export function useDirections({
   }, [directionsService, markers, map]);
 
   const handleUndoDirection = () => {
-    if (renderers.length === 0) return;
-    
-    const updatedRenderers = [...renderers];
-    const lastRenderer = updatedRenderers[updatedRenderers.length - 1];
-    
-    if (lastRenderer && lastRenderer.directionRenderer) {
-      // Remove direction from map
-      lastRenderer.directionRenderer.set('directions', null);
-      // Remove the event listener
-      lastRenderer.listener.remove();
+    if (renderers.length > 0) {
+      const updatedRenderers = [...renderers];
+      const lastRenderer = updatedRenderers[updatedRenderers.length - 1];
+      
+      if (lastRenderer && lastRenderer.directionRenderer) {
+        // Remove direction from map
+        lastRenderer.directionRenderer.set('directions', null);
+        // Remove the event listener
+        lastRenderer.listener.remove();
+      }
+      updatedRenderers.pop();
+      setRenderers(updatedRenderers);
     }
-    
-    updatedRenderers.pop();
-    setRenderers(updatedRenderers);
     
     if (onUndo) {
       onUndo();
