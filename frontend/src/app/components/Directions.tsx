@@ -4,7 +4,7 @@ import { MarkerData } from "../types/map";
 import { useDirections } from "../hooks/useDirections";
 import { Undo, Trash2, Map, TrendingUp, TrendingDown } from "lucide-react";
 import usePlacesAutocomplete, { getGeocode, getLatLng } from "use-places-autocomplete";
-import SearchBar from "@/components/ui/searchBar";
+import SearchBar from "../../components/ui/searchBar";
 import { useMap } from "@vis.gl/react-google-maps";
 
 interface DirectionsProps {
