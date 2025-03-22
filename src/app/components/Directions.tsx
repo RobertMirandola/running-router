@@ -30,6 +30,7 @@ export function Directions({
     elevationLoss,
     handleUndoDirection,
     handleClearWayPoints,
+    handleSaveRoute
   } = useDirections({
     markers,
     onUndo,
@@ -96,7 +97,7 @@ export function Directions({
     <>
       <div className="absolute top-4 left-0 right-0 flex justify-center">
         <div className="w-full flex justify-between">
-          <div className="ml-4 mt-1">
+          <div className="ml-4 mt-1 flex gap-2">
             <SearchBar 
               placeholder="Choose a starting point ..."
               value={value}
@@ -105,11 +106,9 @@ export function Directions({
               suggestions={data}
               showSuggestions={status === "OK"}
             />
-          </div>
-          <div className="mr-4 mt-1 flex gap-2">
             <button 
               onClick={handleUndoDirection}
-              className="h-[42px] p-2 bg-white hover:bg-gray-100 text-gray-500 font-bold rounded-md shadow-lg cursor-pointer transition-colors flex-shrink-0 border-2 border-gray-400"
+              className="h-[42px] p-2 bg-white hover:bg-gray-100 text-gray-500 font-bold rounded-md shadow-lg cursor-pointer transition-colors flex-shrink-0 border-1 border-gray-400"
               aria-label="Undo Last Marker"
               title="Undo Last Marker"
             >
@@ -117,15 +116,25 @@ export function Directions({
             </button>
             <button 
               onClick={handleClearWayPoints}
-              className="h-[42px] p-2 bg-white hover:bg-gray-100 text-gray-500 font-bold rounded-md shadow-lg cursor-pointer transition-colors flex-shrink-0 border-2 border-gray-400"
+              className="h-[42px] p-2 bg-white hover:bg-gray-100 text-gray-500 font-bold rounded-md shadow-lg cursor-pointer transition-colors flex-shrink-0 border-1 border-gray-400"
               aria-label="Clear Waypoints"
               title="Clear Waypoints"
             >
               <Trash2 size={24} />
             </button>
           </div>
+          <div className="mr-4 mt-1">
+            <button 
+              className="h-[42px] px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-md shadow-lg cursor-pointer transition-colors flex-shrink-0"
+              aria-label="Save Route"
+              title="Save Route"
+              onClick={handleSaveRoute}
+            >
+              Save Route
+            </button>
+          </div>
         </div>
-      </div>
+        </div>
 
       {/* Distance display bar at the bottom */}
       <div className="fixed bottom-0 left-0 right-0 bg-white p-4 shadow-lg z-10 flex justify-center items-center">

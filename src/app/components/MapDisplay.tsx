@@ -53,7 +53,7 @@ export function MapDisplay() {
   }, [markers.length]);
   
   return (
-    <div className="relative h-screen w-full">
+    <div className="relative h-full w-full">
       <Map 
         defaultZoom={16} 
         defaultCenter={DEFAULT_MAP_CENTER} 

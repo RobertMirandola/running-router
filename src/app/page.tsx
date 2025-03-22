@@ -1,10 +1,10 @@
-import { MapDisplay } from './components/MapDisplay';
+import { AppLayout } from './components/AppLayout';
 import { MapsProvider } from './providers/MapsProvider';
 
 export default function Home() {
   return (
     <MapsProvider>
-      <MapDisplay/>
+      <AppLayout />
     </MapsProvider>
   );
 }

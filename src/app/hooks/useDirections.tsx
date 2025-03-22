@@ -27,6 +27,7 @@ interface UseDirectionsReturn {
   elevationLoss: number,
   handleUndoDirection: () => void;
   handleClearWayPoints: () => void;
+  handleSaveRoute: () => void;
 }
 
 // Hook to manage directions
@@ -81,6 +82,43 @@ export function useDirections({
     }
   }
 
+  const processElevationData = async (routePath : google.maps.LatLng[]) => {
+    const elevator = new google.maps.ElevationService;
+    // Check if routePath is too long (over 512 coordinates)
+    const MAX_PATH_LENGTH = 512;
+    let totalElevationGain = 0;
+    let totalElevationLoss = 0;
+    
+    // Process the path in chunks since the max path length for elevation api is 512 coordinates
+    for (let i = 0; i < routePath.length; i += MAX_PATH_LENGTH) {
+      const pathChunk = routePath.slice(i, Math.min(i + MAX_PATH_LENGTH, routePath.length));
+      const samples = Math.min(256, pathChunk.length);
+      
+      try {
+        const response = await elevator.getElevationAlongPath({
+          path: pathChunk,
+          samples: samples,
+        });
+        
+        // Process each chunk's elevation data
+        for (let j = 1; j < response.results.length; j++) {
+          const elevationDiff = response.results[j].elevation - response.results[j-1].elevation;
+          if (elevationDiff > 0) {
+            totalElevationGain += elevationDiff;
+          } else {
+            totalElevationLoss += Math.abs(elevationDiff);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching elevation data:", error);
+      }
+    }
+    
+    // Set the final elevation values
+    setElevationGain(totalElevationGain > 0 ? Math.round(totalElevationGain) : 0);
+    setElevationLoss(totalElevationLoss > 0 ? Math.round(totalElevationLoss) : 0);
+  };
+
   const computeRouteMetrics = () => {
     let totalDistance = 0;
     let routePath: google.maps.LatLng[] = [];
@@ -106,27 +144,8 @@ export function useDirections({
         }
       }
       setTotalDistance(totalDistance > 0 ? Number((totalDistance / 1000).toFixed(2)) : 0);
-
-      const elevator = new google.maps.ElevationService;
-      elevator.getElevationAlongPath({
-        path: routePath,
-        samples: 256,
-      }).then((response) => {
-        let totalElevationGain = 0;
-        let totalElevationLoss = 0;
-        
-        for (let i = 1; i < response.results.length; i++) {
-          const elevationDiff = response.results[i].elevation - response.results[i-1].elevation;
-          if (elevationDiff > 0) {
-            totalElevationGain += elevationDiff;
-          } else {
-            totalElevationLoss += Math.abs(elevationDiff);
-          }
-        }
-  
-        setElevationGain(totalElevationGain > 0 ? Number(totalElevationGain.toFixed(2)) : 0);
-        setElevationLoss(totalElevationLoss > 0 ? Number(totalElevationLoss.toFixed(2)) : 0);
-      });
+      
+      processElevationData(routePath);
     }
   }
 
@@ -230,11 +249,80 @@ export function useDirections({
     }
   }
 
+  const handleSaveRoute = () => {
+    // Clear existing routes
+    handleClearWayPoints();
+
+    if (!directionsService || !map || markers.length < 2) {
+      console.error('Cannot save route: Missing directionsService, map, or insufficient markers');
+      return;
+    }
+
+    // Array to store all waypoints in their correct order
+    const allWaypoints: google.maps.DirectionsWaypoint[] = [];
+      
+    // Process each segment between consecutive markers
+    for (let i = 0; i < markers.length - 1; i++) {
+      const currentMarker = markers[i];
+      
+      // If this isn't the first marker, add it as a stopover
+      if (i > 0) {
+        allWaypoints.push({
+          location: new google.maps.LatLng(currentMarker.lat, currentMarker.lng),
+          stopover: true
+        });
+      }
+      
+      // Find any renderer that connects these two markers
+      const renderer = renderers.find(r => 
+        r.originIndex === i && r.destinationIndex === i + 1);
+      
+      // If we found a renderer with via_waypoints, add them
+      if (renderer && renderer.directionResult && 
+          renderer.directionResult.routes[0] && 
+          renderer.directionResult.routes[0].legs[0] && 
+          renderer.directionResult.routes[0].legs[0].via_waypoints) {
+        
+        // Add all via_waypoints as non-stopover waypoints
+        renderer.directionResult.routes[0].legs[0].via_waypoints.forEach(waypoint => {
+          allWaypoints.push({
+            location: new google.maps.LatLng(waypoint.lat(), waypoint.lng()),
+            stopover: false
+          });
+        });
+      }
+    }
+    
+    // Create the consolidated route request
+    const origin = markers[0];
+    const destination = markers[markers.length - 1];
+    
+    const request: google.maps.DirectionsRequest = {
+      origin: new google.maps.LatLng(origin.lat, origin.lng),
+      destination: new google.maps.LatLng(destination.lat, destination.lng),
+      waypoints: allWaypoints,
+      travelMode: google.maps.TravelMode.WALKING,
+      optimizeWaypoints: false // Important: keep waypoints in order
+    };
+    
+    // Request the consolidated route
+    directionsService.route(request)
+      .then(directionResult => {
+        console.log('markers', markers)
+        console.log('direction result', directionResult)
+        console.log('Route consolidated successfully!');
+      })
+      .catch(error => {
+        console.error('Error consolidating route:', error);
+      });
+  }
+
   return {
     totalDistance,
     elevationGain,
     elevationLoss,
     handleUndoDirection,
-    handleClearWayPoints
+    handleClearWayPoints,
+    handleSaveRoute
   };
 } 
