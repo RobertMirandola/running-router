@@ -69,7 +69,7 @@ export function MapDisplay() {
         }}
       >
         {markers.map((element, index) => (
-          <MapMarker key={index} data={element} />
+          <MapMarker key={index} index={index} data={element} />
         ))}
 
         {mapLoaded && (

@@ -12,4 +12,5 @@ export interface MarkerData {
  */
 export interface MapMarkerProps {
   data: MarkerData;
+  index: number
 } 

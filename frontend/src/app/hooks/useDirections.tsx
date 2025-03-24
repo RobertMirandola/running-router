@@ -257,64 +257,50 @@ export function useDirections({
       console.error('Cannot save route: Missing directionsService, map, or insufficient markers');
       return;
     }
+    
+    const overviewPath: google.maps.LatLng[] = [];
 
-    // Array to store all waypoints in their correct order
-    const allWaypoints: google.maps.DirectionsWaypoint[] = [];
-      
-    // Process each segment between consecutive markers
-    for (let i = 0; i < markers.length - 1; i++) {
-      const currentMarker = markers[i];
-      
-      // If this isn't the first marker, add it as a stopover
-      if (i > 0) {
-        allWaypoints.push({
-          location: new google.maps.LatLng(currentMarker.lat, currentMarker.lng),
-          stopover: true
-        });
-      }
-      
-      // Find any renderer that connects these two markers
-      const renderer = renderers.find(r => 
-        r.originIndex === i && r.destinationIndex === i + 1);
+    for (let i = 0; i < renderers.length; i++) {
+      const renderer = renderers[i];
       
       // If we found a renderer with via_waypoints, add them
       if (renderer && renderer.directionResult && 
-          renderer.directionResult.routes[0] && 
-          renderer.directionResult.routes[0].legs[0] && 
-          renderer.directionResult.routes[0].legs[0].via_waypoints) {
-        
-        // Add all via_waypoints as non-stopover waypoints
-        renderer.directionResult.routes[0].legs[0].via_waypoints.forEach(waypoint => {
-          allWaypoints.push({
-            location: new google.maps.LatLng(waypoint.lat(), waypoint.lng()),
-            stopover: false
-          });
-        });
+          renderer.directionResult.routes[0]) {
+        const rendererOverviewPath = renderer.directionResult.routes[0].overview_path;
+        for (let i = 0; i < rendererOverviewPath.length; i++) {
+          overviewPath.push(new google.maps.LatLng(
+            rendererOverviewPath[i].lat(), 
+            rendererOverviewPath[i].lng()
+          ));
+        }
       }
     }
     
-    // Create the consolidated route request
-    const origin = markers[0];
-    const destination = markers[markers.length - 1];
-    
-    const request: google.maps.DirectionsRequest = {
-      origin: new google.maps.LatLng(origin.lat, origin.lng),
-      destination: new google.maps.LatLng(destination.lat, destination.lng),
-      waypoints: allWaypoints,
-      travelMode: google.maps.TravelMode.WALKING,
-      optimizeWaypoints: false // Important: keep waypoints in order
-    };
-    
-    // Request the consolidated route
-    directionsService.route(request)
-      .then(directionResult => {
-        console.log('markers', markers)
-        console.log('direction result', directionResult)
-        console.log('Route consolidated successfully!');
-      })
-      .catch(error => {
-        console.error('Error consolidating route:', error);
-      });
+    console.log('markers', markers)
+    console.log('Overview path: ', overviewPath)
+
+    const routePath = new google.maps.Polyline({
+      path: overviewPath,
+      geodesic: true,
+      strokeColor: "#8FBCFF",
+      strokeOpacity: 1.0,
+      strokeWeight: 5,
+    });
+  
+    routePath.setMap(map);
+
+
+    /**
+     * We want to save the following:
+     * - Route Name : string
+     * - Route Description : string
+     * - Route Overview Path : array of lat lng objects
+     * - Markers: array of lat, lng, waypoint names
+     * - Distance : number
+     * - Elevation Gain : number
+     * - Elevation Loss : number
+     */
+  
   }
 
   return {
