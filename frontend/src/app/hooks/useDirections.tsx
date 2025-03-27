@@ -257,6 +257,42 @@ export function useDirections({
       console.error('Cannot save route: Missing directionsService, map, or insufficient markers');
       return;
     }
+
+
+    // Array to store all waypoints in their correct order
+    const allWaypoints: google.maps.DirectionsWaypoint[] = [];
+      
+    // Process each segment between consecutive markers
+    for (let i = 0; i < markers.length - 1; i++) {
+      const currentMarker = markers[i];
+      
+      // If this isn't the first marker, add it as a stopover
+      if (i > 0) {
+        allWaypoints.push({
+          location: new google.maps.LatLng(currentMarker.lat, currentMarker.lng),
+          stopover: true
+        });
+      }
+      
+      // Find any renderer that connects these two markers
+      const renderer = renderers.find(r => 
+        r.originIndex === i && r.destinationIndex === i + 1);
+      
+      // If we found a renderer with via_waypoints, add them
+      if (renderer && renderer.directionResult && 
+          renderer.directionResult.routes[0] && 
+          renderer.directionResult.routes[0].legs[0] && 
+          renderer.directionResult.routes[0].legs[0].via_waypoints) {
+        
+        // Add all via_waypoints as non-stopover waypoints
+        renderer.directionResult.routes[0].legs[0].via_waypoints.forEach(waypoint => {
+          allWaypoints.push({
+            location: new google.maps.LatLng(waypoint.lat(), waypoint.lng()),
+            stopover: true
+          });
+        });
+      }
+    }
     
     const overviewPath: google.maps.LatLng[] = [];
 
@@ -278,6 +314,7 @@ export function useDirections({
     
     console.log('markers', markers)
     console.log('Overview path: ', overviewPath)
+    debugger
 
     const routePath = new google.maps.Polyline({
       path: overviewPath,
@@ -296,6 +333,7 @@ export function useDirections({
      * - Route Description : string
      * - Route Overview Path : array of lat lng objects
      * - Markers: array of lat, lng, waypoint names
+     * - Route Waypoints: array of google.maps.DirectionWaypoint
      * - Distance : number
      * - Elevation Gain : number
      * - Elevation Loss : number
