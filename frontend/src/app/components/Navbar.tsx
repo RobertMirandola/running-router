@@ -1,67 +1,110 @@
-'use client';
+'use client'
 
-import React from 'react';
-import { MapPin, Menu, Settings, List, Home } from 'lucide-react';
+import { Menu } from "lucide-react"
+import { useContext, createContext, useState } from "react"
+import Link from "next/link"
+import { usePathname } from "next/navigation"
 
-interface NavbarProps {
-  collapsed?: boolean;
-  onToggle?: () => void;
+const SidebarContext = createContext({ expanded: false })
+
+export function Navbar({ children }: { children: React.ReactNode }) {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <aside className="h-screen sticky top-0 z-10 max-w-[300px]">
+      <nav className="h-full flex flex-col bg-white border-r shadow-sm">
+        <div className="p-4 pb-2 flex justify-between items-center">
+          <div
+            className={`overflow-hidden transition-all ${
+              expanded ? "w-64" : "w-0"
+            }`}
+          >
+            {expanded && (
+              <h1 className="font-bold text-xl whitespace-nowrap">Running Router 🏃‍♂️‍➡️</h1>
+            )}
+          </div>
+          <button
+            onClick={() => setExpanded((curr) => !curr)}
+            className="p-1.5 rounded-lg bg-gray-50 cursor-pointer"
+            aria-label={expanded ? "Collapse sidebar" : "Expand sidebar"}
+          >
+            <Menu size={20} />
+          </button>
+        </div>
+
+        <SidebarContext.Provider value={{ expanded }}>
+          <ul className="flex-1 px-3">{children}</ul>
+        </SidebarContext.Provider>
+      </nav>
+    </aside>
+  )
 }
 
-export function Navbar({ collapsed = false, onToggle }: NavbarProps) {
+export function NavbarItem({ 
+  icon, 
+  text, 
+}: { 
+  icon: React.ReactNode; 
+  text: string; 
+  active?: boolean; 
+}) {
+  const { expanded } = useContext(SidebarContext)
+  const pathname = usePathname()
+  
+  // Determine href based on text
+  const href = text === "View Routes" ? "/view" : "/create"
+  
+  // Determine if this item is active based on current path
+  let isActive = false;
+  
+  // For Create Route
+  if (text === "Create Route") {
+    isActive = pathname === "/create" || pathname === "/";
+  }
+  // For View Routes
+  else if (text === "View Routes") {
+    isActive = pathname === "/view";
+  }
+  
   return (
-    <div 
-      className={`h-screen bg-white border-r border-gray-200 transition-all duration-300 flex flex-col shadow-md ${
-        collapsed ? 'w-16' : 'w-64'
-      }`}
-    >
-      {/* App Logo/Title */}
-      <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-        {!collapsed && (
-          <h1 className="text-xl font-bold text-blue-600">Running Router</h1>
-        )}
-        <button 
-          onClick={onToggle}
-          className="p-2 rounded-md hover:bg-gray-100"
-          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+    <Link href={href}>
+      <li
+        className={`
+          relative flex items-center py-2 px-3 my-1
+          font-medium rounded-md cursor-pointer
+          transition-colors group h-10
+          ${
+            isActive
+              ? "bg-gradient-to-tr from-indigo-200 to-indigo-100 text-indigo-800"
+              : "hover:bg-indigo-50 text-gray-600"
+          }
+      `}
+      >
+        <div className="flex items-center justify-center w-5 h-5">
+          {icon}
+        </div>
+        <span
+          className={`overflow-hidden transition-all ${
+            expanded ? "w-52 ml-3" : "w-0"
+          }`}
         >
-          <Menu size={20} />
-        </button>
-      </div>
+          {text}
+        </span>
 
-      {/* Navigation Items */}
-      <nav className="flex-1 overflow-y-auto py-4">
-        <ul className="space-y-2">
-          <li>
-            <a 
-              href="#" 
-              className="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-md mx-2"
-            >
-              <Home className="h-5 w-5 text-gray-500" />
-              {!collapsed && <span className="ml-3">Home</span>}
-            </a>
-          </li>
-          <li>
-            <a 
-              href="#" 
-              className="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-md mx-2"
-            >
-              <MapPin className="h-5 w-5 text-gray-500" />
-              {!collapsed && <span className="ml-3">My Routes</span>}
-            </a>
-          </li>
-          <li>
-            <a 
-              href="#" 
-              className="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-md mx-2"
-            >
-              <List className="h-5 w-5 text-gray-500" />
-              {!collapsed && <span className="ml-3">Saved Routes</span>}
-            </a>
-          </li>
-        </ul>
-      </nav>
-
-    </div>
-  );
-} 
+        {!expanded && (
+          <div
+            className={`
+            absolute left-full rounded-md px-2 py-1 ml-6
+            bg-indigo-100 text-indigo-800 text-sm
+            invisible opacity-20 -translate-x-3 transition-all
+            group-hover:visible group-hover:opacity-100 group-hover:translate-x-0
+            whitespace-nowrap
+        `}
+          >
+            {text}
+          </div>
+        )}
+      </li>
+    </Link>
+  )
+}

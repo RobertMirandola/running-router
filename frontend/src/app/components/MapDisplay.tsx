@@ -53,30 +53,33 @@ export function MapDisplay() {
   }, [markers.length]);
   
   return (
-    <div className="relative h-full w-full">
-      <Map 
-        defaultZoom={16} 
-        defaultCenter={DEFAULT_MAP_CENTER} 
-        mapId="my_map" 
-        draggableCursor='crosshair'
-        disableDefaultUI={true}
-        onClick={handleMapclick}
-        onTilesLoaded={() => {
-          // Use this event to detect when the map is ready
-          if (!mapLoaded) {
-            setMapLoaded(true);
-          }
-        }}
-      >
-        {markers.map((element, index) => (
-          <MapMarker key={index} index={index} data={element} />
-        ))}
+    <div className="relative h-full w-full flex flex-col">
+      <div className="flex-1 relative">
+        <Map 
+          className="absolute inset-0"
+          defaultZoom={16} 
+          defaultCenter={DEFAULT_MAP_CENTER} 
+          mapId="my_map" 
+          draggableCursor='crosshair'
+          disableDefaultUI={true}
+          onClick={handleMapclick}
+          onTilesLoaded={() => {
+            // Use this event to detect when the map is ready
+            if (!mapLoaded) {
+              setMapLoaded(true);
+            }
+          }}
+        >
+          {markers.map((element, index) => (
+            <MapMarker key={index} index={index} data={element} />
+          ))}
 
-        {mapLoaded && (
-            <Directions markers={markers} onUndo={handleUndoLastMarker} onClearWaypoints={handleClearMarkers} onAddMarker={addMarkerToMap} />
-        )}
+          {mapLoaded && (
+              <Directions markers={markers} onUndo={handleUndoLastMarker} onClearWaypoints={handleClearMarkers} onAddMarker={addMarkerToMap} />
+          )}
 
-      </Map>
+        </Map>
+      </div>
     </div>
   );
 }

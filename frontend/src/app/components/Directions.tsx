@@ -134,10 +134,10 @@ export function Directions({
             </button>
           </div>
         </div>
-        </div>
+      </div>
 
       {/* Distance display bar at the bottom */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white p-4 shadow-lg z-10 flex justify-center items-center">
+      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-white p-4 shadow-lg z-10 flex justify-center items-center rounded-xl">
         <div className="flex items-center mr-6">
           <Map className="h-6 w-6 mr-2 text-blue-500" />
           <span className="font-bold mr-2">Total Distance:</span>

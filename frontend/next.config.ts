@@ -1,8 +1,16 @@
-import type { NextConfig } from "./frontend/node_modules/next";
+import type { NextConfig } from "./node_modules/next";
 
 const nextConfig: NextConfig = {
   /* config options here */
   devIndicators: false,
+  async rewrites() {
+    return [
+      {
+        source: '/',
+        destination: '/create',
+      },
+    ]
+  }
 };
 
-export default nextConfig;
+module.exports = nextConfig;

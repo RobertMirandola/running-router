@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Navbar, NavbarItem } from "./components/Navbar";
+import { MapPin, Route } from "lucide-react";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -25,9 +27,15 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased h-screen flex`}
       >
-        {children}
+        <Navbar>
+          <NavbarItem icon={<MapPin size={20}/>} text="Create Route" />
+          <NavbarItem icon={<Route size={20}/>} text="View Routes"/>
+        </Navbar>
+        <main className="flex-1 h-screen overflow-hidden">
+          {children}
+        </main>
       </body>
     </html>
   );

@@ -4,6 +4,8 @@ import { useMap, useMapsLibrary } from "@vis.gl/react-google-maps";
 import { useState, useEffect, useRef } from "react";
 import { MarkerData } from "../types/map";
 
+import axios from 'axios';
+
 // Interface for renderer object
 interface DirectionRenderer {
   originIndex: number,
@@ -249,7 +251,7 @@ export function useDirections({
     }
   }
 
-  const handleSaveRoute = () => {
+  const handleSaveRoute = async () => {
     // Clear existing routes
     handleClearWayPoints();
 
@@ -269,7 +271,7 @@ export function useDirections({
       // If this isn't the first marker, add it as a stopover
       if (i > 0) {
         allWaypoints.push({
-          location: new google.maps.LatLng(currentMarker.lat, currentMarker.lng),
+          location: { lat: currentMarker.lat, lng: currentMarker.lng },
           stopover: true
         });
       }
@@ -287,7 +289,7 @@ export function useDirections({
         // Add all via_waypoints as non-stopover waypoints
         renderer.directionResult.routes[0].legs[0].via_waypoints.forEach(waypoint => {
           allWaypoints.push({
-            location: new google.maps.LatLng(waypoint.lat(), waypoint.lng()),
+            location: { lat: waypoint.lat(), lng: waypoint.lng() },
             stopover: true
           });
         });
@@ -312,9 +314,6 @@ export function useDirections({
       }
     }
     
-    console.log('markers', markers)
-    console.log('Overview path: ', overviewPath)
-    debugger
 
     const routePath = new google.maps.Polyline({
       path: overviewPath,
@@ -324,8 +323,19 @@ export function useDirections({
       strokeWeight: 5,
     });
   
-    routePath.setMap(map);
+    // routePath.setMap(map);
 
+    const routeName = 'Another test Route';
+    const routeDescription = 'Test Description';
+    
+    console.log('Route Name', routeName)
+    console.log('Route Description', routeDescription)
+    console.log('Overview Path', overviewPath)
+    console.log('Markers', markers);
+    console.log('Waypoints', allWaypoints);
+    console.log('Distance', totalDistance);
+    console.log('Elevation Gain', elevationGain);
+    console.log('Elevation Loss', elevationLoss);
 
     /**
      * We want to save the following:
@@ -338,7 +348,38 @@ export function useDirections({
      * - Elevation Gain : number
      * - Elevation Loss : number
      */
-  
+
+    // Format the data to match the MongoDB schema structure
+    const formattedOverviewPath = overviewPath.map(point => ({
+      lat: point.lat(),
+      lng: point.lng()
+    }));
+
+    // Prepare the request payload
+    const routeData = {
+      name: routeName,
+      description: routeDescription,
+      overviewPath: formattedOverviewPath,
+      markers: markers,
+      waypoints: allWaypoints,
+      distance: totalDistance,
+      elevationGain: elevationGain,
+      elevationLoss: elevationLoss
+    };
+
+    try {
+      // Send the POST request to the backend
+      const response = await axios.post('http://localhost:3500/map', routeData);
+      console.log('Route saved successfully:', response.data);
+      
+      // You could show a success notification here
+      alert('Route saved successfully!');
+    } catch (error) {
+      console.error('Error saving route:', error);
+      
+      // Show error notification
+      alert('Failed to save route. Please try again.');
+    }
   }
 
   return {
