@@ -37,7 +37,7 @@ const SearchBar = ({
   };
 
   return (
-    <div className='w-[450px] relative'>
+    <div className='min-w-[300px] relative'>
       <div className="relative flex bg-white border border-gray-200 rounded shadow-sm">
         <SearchIcon className="h-5 w-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
         <input 
@@ -47,6 +47,11 @@ const SearchBar = ({
           className='w-full py-2 pl-10 pr-3 h-[41px] text-gray-700 placeholder-gray-500 text-sm focus:outline-none focus:ring-1 focus:ring-blue-300 focus:border-blue-300 rounded' 
           onChange={handleInputChange}
         />
+        <style>{`
+          input[type="search"]::-webkit-search-cancel-button {
+            cursor: pointer;
+          }
+        `}</style>
       </div>
 
       {showSuggestions && suggestions.length > 0 && (
