@@ -12,9 +12,9 @@ const getAllRoutes = asyncHandler(async (req, res) => {
 })
 
 const createNewRoute = asyncHandler(async (req, res) => {
-  const { name, description, overviewPath, markers, waypoints, distance, elevationGain, elevationLoss } = req.body;
+  const { name, description, overviewPath, encodedPolyline, markers, waypoints, distance, elevationGain, elevationLoss } = req.body;
 
-  const routeObject = { name, description, overviewPath, markers, waypoints, distance, elevationGain, elevationLoss };
+  const routeObject = { name, description, overviewPath, encodedPolyline, markers, waypoints, distance, elevationGain, elevationLoss };
 
   const route = await Route.create(routeObject);
 

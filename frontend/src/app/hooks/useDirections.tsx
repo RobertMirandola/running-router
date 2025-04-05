@@ -315,6 +315,7 @@ export function useDirections({
     }
     
 
+    // Create a polyline for the route
     const routePath = new google.maps.Polyline({
       path: overviewPath,
       geodesic: true,
@@ -322,7 +323,13 @@ export function useDirections({
       strokeOpacity: 1.0,
       strokeWeight: 5,
     });
-  
+    
+    // Get the encoded polyline string using the geometry library
+    const encodedPolyline = google.maps.geometry.encoding.encodePath(overviewPath);
+    console.log('Encoded Polyline:', encodedPolyline);
+
+    // https://maps.googleapis.com/maps/api/staticmap?size=500x500&path=color:0xff0000ff|enc:c|jjG`i_eNNYXa@NKTKn@IbBDnA@ZEj@Wb@_@Zi@Ts@ToBZiCzEuX&key=AIzaSyAeCARUlkQVbk1g8XRIDzRLHKEbnRo6tt0
+
     // routePath.setMap(map);
 
     const routeName = 'Another test Route';
@@ -331,6 +338,7 @@ export function useDirections({
     console.log('Route Name', routeName)
     console.log('Route Description', routeDescription)
     console.log('Overview Path', overviewPath)
+    console.log('Encoded Polyline:', encodedPolyline)
     console.log('Markers', markers);
     console.log('Waypoints', allWaypoints);
     console.log('Distance', totalDistance);
@@ -360,6 +368,7 @@ export function useDirections({
       name: routeName,
       description: routeDescription,
       overviewPath: formattedOverviewPath,
+      encodedPolyline: encodedPolyline,
       markers: markers,
       waypoints: allWaypoints,
       distance: totalDistance,

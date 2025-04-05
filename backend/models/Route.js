@@ -33,6 +33,10 @@ const routeSchema = new mongoose.Schema({
       required: true
     }
   }],
+  encodedPolyline: {
+    type: String,
+    default: '',
+  },
   markers: [{
     lat: {
       type: Number,
