@@ -1,28 +1,36 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { MapsProvider } from '../providers/MapsProvider';
 import axios from 'axios';
-import { MapPin, Clock, TrendingUp } from 'lucide-react';
+import { MapPin, TrendingUp, TrendingDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import Image from 'next/image';
 
 interface RouteData {
   _id: string;
   name: string;
   description: string;
+  encodedPolyline: string,
   distance: number;
   duration: number,
   elevationGain: number;
   elevationLoss: number;
-  createdAt?: string;
+  createdAt: string;
 }
 
 export default function ViewPage() {
   const [routes, setRoutes] = useState<RouteData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [apiKey, setApiKey] = useState<string>('');
 
   useEffect(() => {
+    // Get API key from environment variable
+    const googleMapsApiKey = process.env.NEXT_PUBLIC_MAPS_API_KEY || '';
+    setApiKey(googleMapsApiKey);
+
     const fetchRoutes = async () => {
       try {
         setLoading(true);
@@ -40,7 +48,6 @@ export default function ViewPage() {
     fetchRoutes();
   }, []);
 
-  // Format date as "Month Day, Year"
   const formatDate = (dateString?: string) => {
     if (!dateString) return 'Unknown date';
     const date = new Date(dateString);
@@ -51,7 +58,12 @@ export default function ViewPage() {
     });
   };
 
-  // https://maps.googleapis.com/maps/api/staticmap?size=500x500&path=color:0xff0000ff|enc:c|jjG`i_eNNYXa@NKTKn@IbBDnA@ZEj@Wb@_@Zi@Ts@ToBZiCzEuX&key=MY_API_KEY
+  // Generate Google Maps Static API URL for the route
+  const getMapImageUrl = (encodedPolyline: string): string | undefined => {
+    if (!encodedPolyline || !apiKey) return undefined;
+    
+    return `https://maps.googleapis.com/maps/api/staticmap?size=640x250&scale=2&path=color:0xFF5722FF|weight:5|enc:${encodedPolyline}&key=${apiKey}`;
+  };
 
   return (
     <div className="container mx-auto px-4 py-8 h-full overflow-auto">
@@ -79,11 +91,19 @@ export default function ViewPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {routes.map((route) => (
             <div key={route._id} className="border rounded-md overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-              {/* Placeholder for route image - we'll implement this later */}
-              <div className="h-48 bg-gray-200 relative">
-                <div className="absolute inset-0 flex items-center justify-center text-gray-400">
-                  Map preview coming soon
-                </div>
+              {/* Route map image using Google Maps Static API */}
+              <div className="bg-gray-100 relative h-[250px]">
+                {route.encodedPolyline && apiKey ? (
+                  <img 
+                    src={getMapImageUrl(route.encodedPolyline)} 
+                    alt={`Map of ${route.name || 'route'}`}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center text-gray-400">
+                    No map data available
+                  </div>
+                )}
               </div>
               
               <div className="p-4">
@@ -98,12 +118,12 @@ export default function ViewPage() {
                     <span>{route.distance.toFixed(1)} km</span>
                   </div>
                   <div className="flex items-center">
-                    <Clock className="w-5 h-5 mr-1" />
-                    <span>{Math.round(route.duration / 60)} min</span>
-                  </div>
-                  <div className="flex items-center">
                     <TrendingUp className="w-5 h-5 mr-1" />
                     <span>{route.elevationGain} m</span>
+                  </div>
+                  <div className="flex items-center">
+                    <TrendingDown className="w-5 h-5 mr-1" />
+                    <span>{route.elevationLoss} m</span>
                   </div>
                 </div>
               </div>

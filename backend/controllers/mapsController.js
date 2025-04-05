@@ -2,7 +2,7 @@ const Route = require('../models/Route');
 const asyncHandler = require('express-async-handler');
 
 const getAllRoutes = asyncHandler(async (req, res) => {
-  const runningRoutes = await Route.find().lean();
+  const runningRoutes = await Route.find().lean().sort({ createdAt: -1 });
 
   if (!runningRoutes?.length) {
     return res.json([]);
