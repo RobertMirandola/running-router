@@ -151,7 +151,7 @@ export function Directions({
           <div className="mr-4 mt-1">
             <Dialog>
               <DialogTrigger asChild>
-                <Button className="cursor-pointer" disabled={markers.length < 2} type="button">Save Route</Button>
+                <Button className="cursor-pointer" disabled={markers.length < 2} size="lg" type="button">Save Route</Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-[425px]" aria-describedby={undefined}>
               <DialogHeader>

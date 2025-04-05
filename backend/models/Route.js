@@ -5,11 +5,13 @@ const mongoose = require('mongoose');
  * - Route Name : string
  * - Route Description : string
  * - Route Overview Path : array of lat lng objects
+ * - Encoded Polyline: string
  * - Markers: array of lat, lng, waypoint names
  * - Route Waypoints: array of google.maps.DirectionWaypoint
  * - Distance : number
  * - Elevation Gain : number
  * - Elevation Loss : number
+ * - timestamp
  */
 
 const routeSchema = new mongoose.Schema({
@@ -72,6 +74,11 @@ const routeSchema = new mongoose.Schema({
     default: 0,
     min: 0
   },
+  duration: {
+    type: Number,
+    default: 0,
+    min: 0,
+  },
   elevationGain: {
     type: Number,
     default: 0,
@@ -82,6 +89,6 @@ const routeSchema = new mongoose.Schema({
     default: 0,
     min: 0
   },
-})
+}, { timestamps: true })
 
 module.exports = mongoose.model('Route', routeSchema)

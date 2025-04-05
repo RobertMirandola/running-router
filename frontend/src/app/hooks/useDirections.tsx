@@ -264,6 +264,7 @@ export function useDirections({
 
     // Array to store all waypoints in their correct order
     const allWaypoints: google.maps.DirectionsWaypoint[] = [];
+    let totalDuration = 0; // measured in seconds
       
     // Process each segment between consecutive markers
     for (let i = 0; i < markers.length - 1; i++) {
@@ -286,6 +287,11 @@ export function useDirections({
           renderer.directionResult.routes[0] && 
           renderer.directionResult.routes[0].legs[0] && 
           renderer.directionResult.routes[0].legs[0].via_waypoints) {
+        
+        // Add the duration of this leg to the total duration
+        if (renderer.directionResult.routes[0].legs[0].duration) {
+          totalDuration += renderer.directionResult.routes[0].legs[0].duration.value;
+        }
         
         // Add all via_waypoints as non-stopover waypoints
         renderer.directionResult.routes[0].legs[0].via_waypoints.forEach(waypoint => {
@@ -338,18 +344,7 @@ export function useDirections({
     console.log('Distance', totalDistance);
     console.log('Elevation Gain', elevationGain);
     console.log('Elevation Loss', elevationLoss);
-
-    /**
-     * We want to save the following:
-     * - Route Name : string
-     * - Route Description : string
-     * - Route Overview Path : array of lat lng objects
-     * - Markers: array of lat, lng, waypoint names
-     * - Route Waypoints: array of google.maps.DirectionWaypoint
-     * - Distance : number
-     * - Elevation Gain : number
-     * - Elevation Loss : number
-     */
+    console.log('Total Duration', totalDuration);
 
     // Format the data to match the MongoDB schema structure
     const formattedOverviewPath = overviewPath.map(point => ({
@@ -366,6 +361,7 @@ export function useDirections({
       markers: markers,
       waypoints: allWaypoints,
       distance: totalDistance,
+      duration: totalDuration,
       elevationGain: elevationGain,
       elevationLoss: elevationLoss
     };
