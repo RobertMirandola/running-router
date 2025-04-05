@@ -328,8 +328,6 @@ export function useDirections({
     const encodedPolyline = google.maps.geometry.encoding.encodePath(overviewPath);
     console.log('Encoded Polyline:', encodedPolyline);
 
-    // https://maps.googleapis.com/maps/api/staticmap?size=500x500&path=color:0xff0000ff|enc:c|jjG`i_eNNYXa@NKTKn@IbBDnA@ZEj@Wb@_@Zi@Ts@ToBZiCzEuX&key=AIzaSyAeCARUlkQVbk1g8XRIDzRLHKEbnRo6tt0
-
     // routePath.setMap(map);
 
     const routeName = 'Another test Route';
