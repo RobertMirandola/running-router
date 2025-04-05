@@ -3,6 +3,22 @@
 import { MarkerData } from "../types/map";
 import { useDirections } from "../hooks/useDirections";
 import { Undo, Trash2, Map, TrendingUp, TrendingDown } from "lucide-react";
+import { useState } from "react";
+
+import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+
 import usePlacesAutocomplete, { getGeocode, getLatLng } from "use-places-autocomplete";
 import SearchBar from "../../components/ui/searchBar";
 import { useMap } from "@vis.gl/react-google-maps";
@@ -22,6 +38,8 @@ export function Directions({
 }: DirectionsProps) {
   // Get map instance to center on selected location
   const map = useMap();
+  const [routeName, setRouteName] = useState("");
+  const [routeDescription, setRouteDescription] = useState("");
   
   // Use our custom hook to handle all directions logic
   const {
@@ -93,6 +111,13 @@ export function Directions({
     setValue(newValue);
   };
 
+  const handleRouteDialogSave = async () => {
+    handleSaveRoute(routeName, routeDescription);
+    
+    setRouteName("");
+    setRouteDescription("");
+  }
+
   return (
     <>
       <div className="absolute top-4 left-0 right-0 flex justify-center">
@@ -124,14 +149,35 @@ export function Directions({
             </button>
           </div>
           <div className="mr-4 mt-1">
-            <button 
-              className="h-[42px] px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-md shadow-lg cursor-pointer transition-colors flex-shrink-0"
-              aria-label="Save Route"
-              title="Save Route"
-              onClick={handleSaveRoute}
-            >
-              Save Route
-            </button>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button className="cursor-pointer" disabled={markers.length < 2} type="button">Save Route</Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[425px]" aria-describedby={undefined}>
+              <DialogHeader>
+                <DialogTitle>Save Route</DialogTitle>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="name" className="text-right">
+                    Name
+                  </Label>
+                  <Input id="name" value={routeName} onChange={(e) => setRouteName(e.target.value)} className="col-span-3" />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="routedesc" className="text-right">
+                    Description
+                  </Label>
+                  <Textarea id="routedesc" value={routeDescription} onChange={(e) => setRouteDescription(e.target.value)} className="col-span-3"/>
+                </div>
+              </div>
+              <DialogFooter>
+                <DialogClose asChild>
+                  <Button className="cursor-pointer" type="submit" onClick={handleRouteDialogSave}>Save</Button>
+                </DialogClose>
+              </DialogFooter>
+            </DialogContent>
+            </Dialog>
           </div>
         </div>
       </div>

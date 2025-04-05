@@ -29,7 +29,7 @@ interface UseDirectionsReturn {
   elevationLoss: number,
   handleUndoDirection: () => void;
   handleClearWayPoints: () => void;
-  handleSaveRoute: () => void;
+  handleSaveRoute: (routeName: string, routeDescription: string) => void;
 }
 
 // Hook to manage directions
@@ -251,7 +251,8 @@ export function useDirections({
     }
   }
 
-  const handleSaveRoute = async () => {
+  const handleSaveRoute = async (routeName: string, routeDescription: string) => {
+
     // Clear existing routes
     handleClearWayPoints();
 
@@ -330,11 +331,6 @@ export function useDirections({
 
     // routePath.setMap(map);
 
-    const routeName = 'Another test Route';
-    const routeDescription = 'Test Description';
-    
-    console.log('Route Name', routeName)
-    console.log('Route Description', routeDescription)
     console.log('Overview Path', overviewPath)
     console.log('Encoded Polyline:', encodedPolyline)
     console.log('Markers', markers);
