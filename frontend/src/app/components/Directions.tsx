@@ -159,13 +159,13 @@ export function Directions({
               </DialogHeader>
               <div className="grid gap-4 py-4">
                 <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="name" className="text-right">
+                  <Label htmlFor="name" className="text-right flex justify-end">
                     Name
                   </Label>
                   <Input id="name" value={routeName} onChange={(e) => setRouteName(e.target.value)} className="col-span-3" />
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="routedesc" className="text-right">
+                  <Label htmlFor="routedesc" className="text-right flex justify-end">
                     Description
                   </Label>
                   <Textarea id="routedesc" value={routeDescription} onChange={(e) => setRouteDescription(e.target.value)} className="col-span-3"/>
