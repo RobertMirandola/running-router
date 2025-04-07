@@ -2,7 +2,10 @@ const Route = require('../models/Route');
 const asyncHandler = require('express-async-handler');
 
 const getAllRoutes = asyncHandler(async (req, res) => {
-  const runningRoutes = await Route.find().lean().sort({ createdAt: -1 });
+  const runningRoutes = await Route.find()
+    .select('_id name description encodedPolyline distance duration elevationGain elevationLoss createdAt')
+    .lean()
+    .sort({ createdAt: -1 });
 
   if (!runningRoutes?.length) {
     return res.json([]);
